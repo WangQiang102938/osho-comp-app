@@ -1,10 +1,11 @@
 # ozipw
+![GitHub License](https://img.shields.io/github/license/WangQiang102938/osho-comp-app)
 
 osho zip wizard
 
 ## Description
 
-A CLI wizard to extract or make archives, made by osho.
+A CLI wizard to extract or make archives, made by osho, written with Rust.
 
 This is a tool for CLI to have wizard-like zip/unzip experience.
 
@@ -31,9 +32,15 @@ ARGUMENTS:
 ```
 
 ## Install(TODO)
-
+### Linux
+```sh
+# TODO
 ```
-brew install 
+
+
+### MacOS
+```sh
+# brew install 
 ```
 
 ## About
