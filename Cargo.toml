@@ -18,3 +18,9 @@ unrar = "0.5.3"
 xz2 = "0.1.7"
 zip = "2.1.0"
 zstd = "0.13.1"
+clap_builder = "4.5.9"
+
+[build-dependencies]
+clap = { version = "4.5.4", features = ["derive"] }
+clap_complete = "4.5.2"
+toml = "0.8.12"
