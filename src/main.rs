@@ -1,6 +1,6 @@
-use cli::*;
+// use cli::*;
 
-mod cli;
+// mod cli;
 
 fn main() {
     println!("Hello, world!");
