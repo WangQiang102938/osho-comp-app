@@ -1,7 +1,11 @@
-// use cli::*;
+use clap::Parser;
+use cli::*;
 
-// mod cli;
+mod cli;
+mod shared_utils;
+
 
 fn main() {
-    println!("Hello, world!");
+    let mut opts=CliOpts::parse();
+    println!("{:?}",opts);
 }
