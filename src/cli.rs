@@ -82,5 +82,6 @@ pub enum RunMode {
     Auto,
     Archive,
     Extract,
+    List,
     Wizard,
 }

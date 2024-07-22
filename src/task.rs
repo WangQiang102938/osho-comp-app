@@ -2,6 +2,7 @@ use crate::archiver::{Archiver, ArchiverMode, DummyArchiver};
 use crate::shared_utils::{get_supported_format, AppError, AppResult};
 use crate::{CliOpts, RunMode};
 use std::collections::HashMap;
+use std::env;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -35,20 +36,20 @@ impl ArchiveTask {
 
 #[derive(Debug)]
 pub struct ArchiveJob {
-    source_paths: Vec<PathBuf>,
-    target_path: Option<PathBuf>,
-    archiver: Box<dyn Archiver>,
-    mode: ArchiverMode,
-    overwrite: bool,
-    with_creation: bool,
-    options: HashMap<String, String>,
+    pub source_paths: Vec<PathBuf>,
+    pub target_path: PathBuf,
+    pub archiver: Box<dyn Archiver>,
+    pub mode: ArchiverMode,
+    pub overwrite: bool,
+    pub with_creation: bool,
+    pub options: HashMap<String, String>,
 }
 
 impl ArchiveJob {
     fn new() -> ArchiveJob {
         return ArchiveJob {
             source_paths: Vec::new(),
-            target_path: None,
+            target_path: env::current_dir().expect("Failed to get current dir."),
             archiver: Box::new(DummyArchiver{}),
             mode: ArchiverMode::Unknown,
             overwrite: false,
@@ -60,7 +61,7 @@ impl ArchiveJob {
     fn parse_opt(opt: &mut CliOpts) -> AppResult<ArchiveJob> {
         let mut tmpjob = ArchiveJob::new();
         tmpjob.source_paths = opt.args.clone();
-        tmpjob.target_path = opt.dest.clone();
+        tmpjob.target_path = opt.dest.clone().unwrap_or(env::current_dir().expect("Failed to get curr dir"));
         tmpjob.overwrite = opt.overwrite.clone();
 
         if opt.mode == RunMode::Auto {
@@ -114,6 +115,7 @@ impl ArchiveJob {
                 }
             }
             ArchiverMode::Archive => return Ok(true),
+            ArchiverMode::List => return Ok(true),
         }
     }
 }
