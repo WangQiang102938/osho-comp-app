@@ -1,6 +1,7 @@
 # ozipw
 ![GitHub License](https://img.shields.io/github/license/WangQiang102938/osho-comp-app)
 [![Coverage Status](https://coveralls.io/repos/github/WangQiang102938/osho-comp-app/badge.svg?branch=main)](https://coveralls.io/github/WangQiang102938/osho-comp-app?branch=main)
+[![Rust Report Card](https://rust-reportcard.xuri.me/badge/github.com/wangqiang102938/osho-comp-app)](https://rust-reportcard.xuri.me/report/github.com/wangqiang102938/osho-comp-app)
 
 osho zip wizard
 
