@@ -9,7 +9,7 @@ pub trait Archiver: std::fmt::Debug {
     // job self check and archiver check garenteed correctness.
     fn exec(&self, job: &ArchiveJob) -> AppResult<bool>;
     fn job_check(&self, job: &ArchiveJob) -> bool;
-    fn archive_support_check(&self, format: String, mode: ArchiverMode) -> bool;
+    fn archive_support_check(&self, path: String, mode: ArchiverMode) -> bool;
     fn avaliable_options(&self, mode: ArchiverMode) -> HashMap<String, String>;
 }
 

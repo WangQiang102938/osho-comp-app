@@ -46,7 +46,7 @@ pub struct ArchiveJob {
 }
 
 impl ArchiveJob {
-    fn new() -> ArchiveJob {
+    pub fn new() -> ArchiveJob {
         return ArchiveJob {
             source_paths: Vec::new(),
             target_path: env::current_dir().expect("Failed to get current dir."),
@@ -58,7 +58,7 @@ impl ArchiveJob {
         };
     }
 
-    fn parse_opt(opt: &mut CliOpts) -> AppResult<ArchiveJob> {
+    pub fn parse_opt(opt: &mut CliOpts) -> AppResult<ArchiveJob> {
         let mut tmpjob = ArchiveJob::new();
         tmpjob.source_paths = opt.args.clone();
         tmpjob.target_path = opt.dest.clone().unwrap_or(env::current_dir().expect("Failed to get curr dir"));
@@ -92,7 +92,7 @@ impl ArchiveJob {
         return ArchiveJob::is_all_extractable(&self.source_paths);
     }
 
-    fn job_selfcheck(&self) -> AppResult<bool> {
+    pub fn job_selfcheck(&self) -> AppResult<bool> {
         for path in self.source_paths.iter() {
             if !path.exists() {
                 return Err(AppError::TaskError(

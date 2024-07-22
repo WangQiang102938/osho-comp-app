@@ -1,7 +1,7 @@
+use sevenz_rust::{Password, SevenZArchiveEntry, SevenZWriter};
+use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
-
-use sevenz_rust::{Password, SevenZArchiveEntry, SevenZWriter};
 
 use crate::archiver::Archiver;
 use crate::shared_utils::{AppError, AppResult};
@@ -21,19 +21,24 @@ impl Archiver for Archiver7z {
             super::ArchiverMode::Unknown => {
                 Err(AppError::Archiver("Archiver7z:Unknown mode.".to_string()))
             }
-            super::ArchiverMode::List => self.list(job),
+            super::ArchiverMode::List => match self.list(job) {
+                Ok(items) => {
+                    for item in items.iter() {
+                        print!("{:?}", item);
+                    }
+                    return Ok(true);
+                }
+                Err(e) => Err(e),
+            },
         }
     }
 
-    fn archive_support_check(&self, format: String, mode: super::ArchiverMode) -> bool {
-        todo!()
+    fn archive_support_check(&self, path: String, mode: super::ArchiverMode) -> bool {
+        return path.ends_with(".7z");
     }
 
-    fn avaliable_options(
-        &self,
-        mode: super::ArchiverMode,
-    ) -> std::collections::HashMap<String, String> {
-        todo!()
+    fn avaliable_options(&self, mode: super::ArchiverMode) -> HashMap<String, String> {
+        return HashMap::new(); // TODO
     }
 
     fn job_check(&self, job: &ArchiveJob) -> bool {
@@ -56,8 +61,11 @@ impl Archiver7z {
 
     fn extract(&self, job: &ArchiveJob) -> AppResult<bool> {
         for s_path in job.source_paths.iter() {
-            let len = s_path.metadata().unwrap().len();
-            let mut file = File::create(s_path).expect("Archive7z: file handle failed.");
+            if !(s_path.exists() && s_path.is_file()) {
+                println!("attn point:{:?}", s_path)
+            }
+            let mut file = File::open(s_path).expect("Archive7z: file handle failed.");
+            let len = file.metadata().unwrap().len();
             let password = Password::empty();
             let archive = match sevenz_rust::Archive::read(&mut file, len, password.as_ref()) {
                 Ok(reader) => reader,
@@ -83,8 +91,22 @@ impl Archiver7z {
         Ok(true)
     }
 
-    fn list(&self, job: &ArchiveJob) -> AppResult<bool> {
-        todo!()
+    fn list(&self, job: &ArchiveJob) -> AppResult<Vec<String>> {
+        for s_path in job.source_paths.iter() {
+            let mut reader = File::open(s_path).unwrap();
+            let len = reader.metadata().unwrap().len();
+            match sevenz_rust::Archive::read(&mut reader, len, Password::empty().as_ref()) {
+                Ok(archive) => {
+                    let mut r = Vec::<String>::new();
+                    for entry in &archive.files {
+                        r.push(entry.name.clone())
+                    }
+                    return Ok(r);
+                }
+                Err(e) => return Err(AppError::Fatal(Box::new(e))),
+            }
+        }
+        return Ok(Vec::new());
     }
 }
 
@@ -130,4 +152,95 @@ fn write_sevenz_impl(
         return Err(AppError::Archiver(e.to_string()));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use super::*;
+
+    #[test]
+    fn test_list() {
+        let archiver = Archiver7z {};
+        let file = PathBuf::from("testdata/test.7z");
+        let mut tmp_job = ArchiveJob::new();
+        tmp_job.source_paths.push(file);
+        match archiver.list(&tmp_job) {
+            Ok(r) => {
+                assert_eq!(r.len(), 21);
+                assert_eq!(r.get(0), Some("Cargo.toml".to_string()).as_ref());
+                assert_eq!(r.get(1), Some("build.rs".to_string()).as_ref());
+                assert_eq!(r.get(2), Some("LICENSE".to_string()).as_ref());
+                assert_eq!(r.get(3), Some("README.md".to_string()).as_ref());
+            }
+            Err(_) => assert!(false),
+        }
+    }
+
+    #[test]
+    fn test_extract_archive() {
+        let archiver = Archiver7z {};
+        let file = PathBuf::from("testdata/test.7z");
+        let tmp_job = ArchiveJob {
+            source_paths: vec![file],
+            target_path: PathBuf::from("results/sevenz"),
+            archiver: Box::new(Archiver7z {}),
+            mode: crate::archiver::ArchiverMode::Extract,
+            overwrite: true,
+            with_creation: true,
+            options: HashMap::new(),
+        };
+        match archiver.extract(&tmp_job) {
+            Ok(_) => {
+                assert!(true);
+                assert!(PathBuf::from("results/sevenz/Cargo.toml").exists());
+                std::fs::remove_dir_all(PathBuf::from("results/sevenz")).unwrap();
+            }
+            Err(e) => {
+                println!("{:?}", e);
+                assert!(false)
+            }
+        };
+    }
+
+    #[test]
+    fn test_format() {
+        let archiver = SevenZArchiver {};
+        assert_eq!(archiver.format(), Format::SevenZ);
+    }
+
+    fn run_test<F>(f: F)
+    where
+        F: FnOnce(),
+    {
+        // setup(); // 予めやりたい処理
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(f));
+        teardown(); // 後片付け処理
+
+        if let Err(err) = result {
+            std::panic::resume_unwind(err);
+        }
+    }
+
+    #[test]
+    fn test_zip() {
+        run_test(|| {
+            let archiver = SevenZArchiver {};
+            let inout = ArchiverOpts::create(
+                PathBuf::from("results/test.7z"),
+                vec![PathBuf::from("src"), PathBuf::from("Cargo.toml")],
+                true,
+                true,
+                false,
+            );
+            let result = archiver.perform(&inout);
+            assert!(result.is_ok());
+            assert_eq!(archiver.format(), Format::SevenZ);
+        });
+    }
+
+    fn teardown() {
+        let _ = std::fs::remove_file("results/test.7z");
+    }
 }
