@@ -1,43 +1,32 @@
-
 use std::collections::HashMap;
 
-
-
-pub trait Archiver {
+pub trait Archiver: std::fmt::Debug {
     fn exec_archive(&self);
     fn exec_extract(&self);
-    fn archive_support_check(&self,format: String, mode: ArchiverMode) -> bool;
-    fn avaliable_options(&self,mode: ArchiverMode) -> HashMap<String, String>;
+    fn archive_support_check(&self, format: String, mode: ArchiverMode) -> bool;
+    fn avaliable_options(&self, mode: ArchiverMode) -> HashMap<String, String>;
 }
 
-pub struct DummyArchiver{
+#[derive(Debug)]
+pub struct DummyArchiver {}
 
-}
+impl Archiver for DummyArchiver {
+    fn exec_archive(&self) {}
 
-impl Archiver for DummyArchiver{
-    fn exec_archive(&self) {
-        todo!()
+    fn exec_extract(&self) {}
+
+    fn archive_support_check(&self, format: String, mode: ArchiverMode) -> bool {
+        return true;
     }
 
-    fn exec_extract(&self) {
-        todo!()
-    }
-
-    fn archive_support_check(&self,format: String, mode: ArchiverMode) -> bool {
-        todo!()
-    }
-
-    fn avaliable_options(&self,mode: ArchiverMode) -> HashMap<String, String> {
-        todo!()
+    fn avaliable_options(&self, mode: ArchiverMode) -> HashMap<String, String> {
+        return HashMap::new();
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub enum ArchiverMode {
     Archive,
     Extract,
     Unknown,
 }
-
-
-
-
