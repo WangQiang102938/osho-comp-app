@@ -1,22 +1,32 @@
-use crate::format::FileFormat;
 use std::collections::HashMap;
 
-pub trait Archiver {
+pub trait Archiver: std::fmt::Debug {
     fn exec_archive(&self);
     fn exec_extract(&self);
-    fn archive_support_check(format: FileFormat, mode: ArchiverMode) -> bool;
-    fn avaliable_options(mode: ArchiverMode) -> HashMap<String, String>;
+    fn archive_support_check(&self, format: String, mode: ArchiverMode) -> bool;
+    fn avaliable_options(&self, mode: ArchiverMode) -> HashMap<String, String>;
 }
 
+#[derive(Debug)]
+pub struct DummyArchiver {}
+
+impl Archiver for DummyArchiver {
+    fn exec_archive(&self) {}
+
+    fn exec_extract(&self) {}
+
+    fn archive_support_check(&self, format: String, mode: ArchiverMode) -> bool {
+        return true;
+    }
+
+    fn avaliable_options(&self, mode: ArchiverMode) -> HashMap<String, String> {
+        return HashMap::new();
+    }
+}
+
+#[derive(PartialEq, Debug)]
 pub enum ArchiverMode {
     Archive,
     Extract,
+    Unknown,
 }
-
-pub struct ArchiveOptions {
-    source_paths: Vec<PathBuf>,
-    target_paths: Vec<PathBuf>,
-    options: HashMap<String, String>,
-}
-
-
