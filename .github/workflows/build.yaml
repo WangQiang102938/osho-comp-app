@@ -31,11 +31,11 @@ jobs:
 
       - name: Test and Build
         run: |
-          cargo build
+          RUSTFLAGS=-Awarnings cargo build
 
-      - name: Send coverage to coveralls
-        uses: coverallsapp/github-action@master
-        if: matrix.os == 'ubuntu-latest'
-        with:
-          github-token: ${{ secrets.github_token }}
-          path-to-lcov: coverage.lcov
+      # - name: Send coverage to coveralls
+      #   uses: coverallsapp/github-action@master
+      #   if: matrix.os == 'ubuntu-latest'
+      #   with:
+      #     github-token: ${{ secrets.github_token }}
+      #     path-to-lcov: coverage.lcov
