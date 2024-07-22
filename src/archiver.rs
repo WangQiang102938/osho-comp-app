@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+mod sevenz;
+
 pub trait Archiver: std::fmt::Debug {
     fn exec_archive(&self);
     fn exec_extract(&self);
