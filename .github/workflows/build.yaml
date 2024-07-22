@@ -11,12 +11,12 @@ on:
 jobs:
   build:
     runs-on: macOS
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-          - macos-latest
+    # strategy:
+    #   matrix:
+    #     os:
+    #       - ubuntu-latest
+    #       - windows-latest
+    #       - macos-latest
     steps:
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
