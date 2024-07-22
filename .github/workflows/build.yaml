@@ -31,7 +31,6 @@ jobs:
 
       - name: Test and Build
         run: |
-          # cargo llvm-cov --lcov --output-path coverage.lcov
           cargo build
 
       - name: Send coverage to coveralls
