@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
 
-use crate::archiver::Archiver;
+use crate::archiver::{Archiver, ArchiverMode};
 use crate::shared_utils::{AppError, AppResult};
 use crate::task::ArchiveJob;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) struct Archiver7z {}
 
 impl Archiver for Archiver7z {
@@ -34,6 +34,9 @@ impl Archiver for Archiver7z {
     }
 
     fn archive_support_check(&self, path: String, mode: super::ArchiverMode) -> bool {
+        if mode == ArchiverMode::Unknown {
+            return false;
+        }
         return path.ends_with(".7z");
     }
 
@@ -42,7 +45,7 @@ impl Archiver for Archiver7z {
     }
 
     fn job_check(&self, job: &ArchiveJob) -> bool {
-        return true;
+        return true; // TODO
     }
 }
 
@@ -206,8 +209,11 @@ mod tests {
 
     #[test]
     fn test_format() {
-        let archiver = SevenZArchiver {};
-        assert_eq!(archiver.format(), Format::SevenZ);
+        let archiver = Archiver7z {};
+        assert!(archiver.archive_support_check("test.7z".to_string(), ArchiverMode::Archive));
+        assert!(archiver.archive_support_check("test.7z".to_string(), ArchiverMode::Extract));
+        assert!(archiver.archive_support_check("test.7z".to_string(), ArchiverMode::List));
+        assert!(!archiver.archive_support_check("test.7z".to_string(), ArchiverMode::Unknown));
     }
 
     fn run_test<F>(f: F)
@@ -226,17 +232,21 @@ mod tests {
     #[test]
     fn test_zip() {
         run_test(|| {
-            let archiver = SevenZArchiver {};
-            let inout = ArchiverOpts::create(
-                PathBuf::from("results/test.7z"),
-                vec![PathBuf::from("src"), PathBuf::from("Cargo.toml")],
-                true,
-                true,
-                false,
-            );
-            let result = archiver.perform(&inout);
+            let archiver: Archiver7z = Archiver7z {};
+            let tmp_job = ArchiveJob {
+                source_paths: vec!["src", "Cargo.toml"]
+                    .iter()
+                    .map(|&s| PathBuf::from(s))
+                    .collect(),
+                target_path: PathBuf::from("results/test.7z"),
+                archiver: Box::new(archiver.clone()),
+                mode: ArchiverMode::Archive,
+                overwrite: true,
+                with_creation: true,
+                options: HashMap::new(),
+            };
+            let result = archiver.archive(&tmp_job);
             assert!(result.is_ok());
-            assert_eq!(archiver.format(), Format::SevenZ);
         });
     }
 
