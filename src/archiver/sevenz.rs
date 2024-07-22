@@ -51,8 +51,12 @@ impl Archiver for Archiver7z {
 
 impl Archiver7z {
     fn archive(&self, job: &ArchiveJob) -> AppResult<bool> {
+        // TODO: make creation mode avaliable;
+        std::fs::create_dir_all(job.target_path.parent().unwrap());
+
         let file_handle =
             File::create(job.target_path.clone()).expect("Archive7z: Can't create file");
+
         match SevenZWriter::new(file_handle) {
             Ok(writer) => {
                 write_sevenz_impl(writer, job.source_paths.clone(), true);
