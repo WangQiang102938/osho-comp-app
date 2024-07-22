@@ -1,9 +1,12 @@
-use crate::archiver::{Archiver, ArchiverMode, DummyArchiver};
+use crate::archiver::*;
+use crate::archiver::sevenz::*;
 use crate::shared_utils::{get_supported_format, AppError, AppResult};
 use crate::{CliOpts, RunMode};
 use std::collections::HashMap;
 use std::env;
-use std::path::{Path, PathBuf};
+use std::fmt::format;
+use std::path::PathBuf;
+
 
 #[derive(Debug)]
 pub struct ArchiveTask {
@@ -32,6 +35,31 @@ impl ArchiveTask {
         }
         return Ok(tmp_task);
     }
+
+    pub fn exec(&self) -> AppResult<()> {
+        // TODO: add task self check
+
+        for job in self.jobs.iter() {
+            match job.job_selfcheck() {
+                Ok(_) => {
+                    if !job
+                        .archiver
+                        .exec(job)
+                        .expect(format!("Task: Failed job: {:?}", job).as_str())
+                    {
+                        return Err(AppError::TaskError("Unknown Task Error".to_string()));
+                    }
+                }
+                Err(e) => {
+                    return Err(AppError::TaskError(
+                        format!("Task: job didn't pass self check:{:?}", e).to_string(),
+                    ))
+                }
+            }
+            return Ok(());
+        }
+        return Ok(());
+    }
 }
 
 #[derive(Debug)]
@@ -50,7 +78,7 @@ impl ArchiveJob {
         return ArchiveJob {
             source_paths: Vec::new(),
             target_path: env::current_dir().expect("Failed to get current dir."),
-            archiver: Box::new(DummyArchiver{}),
+            archiver: Box::new(DummyArchiver {}),
             mode: ArchiverMode::Unknown,
             overwrite: false,
             with_creation: false,
@@ -61,7 +89,10 @@ impl ArchiveJob {
     pub fn parse_opt(opt: &mut CliOpts) -> AppResult<ArchiveJob> {
         let mut tmpjob = ArchiveJob::new();
         tmpjob.source_paths = opt.args.clone();
-        tmpjob.target_path = opt.dest.clone().unwrap_or(env::current_dir().expect("Failed to get curr dir"));
+        tmpjob.target_path = opt
+            .dest
+            .clone()
+            .unwrap_or(env::current_dir().expect("Failed to get curr dir"));
         tmpjob.overwrite = opt.overwrite.clone();
 
         if opt.mode == RunMode::Auto {
@@ -117,5 +148,61 @@ impl ArchiveJob {
             ArchiverMode::Archive => return Ok(true),
             ArchiverMode::List => return Ok(true),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::HashMap, path::PathBuf};
+
+    use super::sevenz;
+
+    #[test]
+    fn task_test() {
+        use crate::archiver::*;
+        use crate::archiver::sevenz::*;
+        use crate::shared_utils::{get_supported_format, AppError, AppResult};
+        use crate::{CliOpts, RunMode};
+        use std::collections::HashMap;
+        use std::env;
+        use std::fmt::format;
+        use std::path::PathBuf;
+
+        let mut tmp_task=crate::task::ArchiveTask{
+            jobs: Vec::new(),
+            wizard_enable: true,
+            options: HashMap::new(),
+        };
+
+        let archiver = sevenz::Archiver7z {};
+        let file = PathBuf::from("testdata/test.7z");
+        let tmp_job1 = crate::task::ArchiveJob {
+            source_paths: vec![file],
+            target_path: PathBuf::from("results/sevenz"),
+            archiver: Box::new(sevenz::Archiver7z {}),
+            mode: crate::archiver::ArchiverMode::Extract,
+            overwrite: true,
+            with_creation: true,
+            options: HashMap::new(),
+        };
+        let tmp_job2 = crate::task::ArchiveJob {
+            source_paths: vec!["src", "Cargo.toml"]
+                .iter()
+                .map(|&s| PathBuf::from(s))
+                .collect(),
+            target_path: PathBuf::from("results/test.7z"),
+            archiver: Box::new(archiver.clone()),
+            mode: ArchiverMode::Archive,
+            overwrite: true,
+            with_creation: true,
+            options: HashMap::new(),
+        };
+
+        tmp_task.jobs.push(tmp_job1);
+        tmp_task.jobs.push(tmp_job2);
+        let result = tmp_task.exec();
+        assert!(result.is_ok());
+        assert!(PathBuf::from("results/sevenz/Cargo.toml").exists());
+        std::fs::remove_dir_all(PathBuf::from("results/sevenz")).unwrap();
     }
 }

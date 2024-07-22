@@ -1,8 +1,16 @@
 use std::collections::HashMap;
 
+use sevenz::Archiver7z;
+
 use crate::{shared_utils::AppResult, task::ArchiveJob};
 
-mod sevenz;
+pub mod sevenz;
+
+pub fn get_archivers()->Vec<Box<dyn Archiver>>{
+    let mut archiver_list:Vec<Box<dyn Archiver>>=Vec::new();
+    archiver_list.push(Box::new(Archiver7z{}));
+    return archiver_list;
+}
 
 pub trait Archiver: std::fmt::Debug {
 
@@ -16,6 +24,7 @@ pub trait Archiver: std::fmt::Debug {
 #[derive(Debug)]
 pub struct DummyArchiver {}
 
+#[allow(unused,unused_variables)]
 impl Archiver for DummyArchiver {
     fn archive_support_check(&self, format: String, mode: ArchiverMode) -> bool {
         return true;

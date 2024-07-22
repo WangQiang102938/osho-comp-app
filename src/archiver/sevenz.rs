@@ -8,7 +8,7 @@ use crate::shared_utils::{AppError, AppResult};
 use crate::task::ArchiveJob;
 
 #[derive(Debug, Clone)]
-pub(super) struct Archiver7z {}
+pub struct Archiver7z {}
 
 impl Archiver for Archiver7z {
     fn exec(&self, job: &ArchiveJob) -> AppResult<bool> {
