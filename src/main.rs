@@ -8,5 +8,6 @@ mod session;
 
 fn main() {
     let mut opts=CliOpts::parse();
+    
     println!("{:?}",opts);
 }

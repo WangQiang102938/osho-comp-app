@@ -15,8 +15,8 @@ pub struct CliOpts{
         default_value_t=RunMode::Wizard,
         value_name="MODE",
         required=false,
-        ignore_case = true, 
-        value_enum, 
+        ignore_case = true,
+        value_enum,
         help = "Mode of operation."
     )]
     pub mode:RunMode,
@@ -73,8 +73,6 @@ impl CliOpts{
         }
         return Ok(self.mode);
     }
-
-    
 }
 
 #[derive(Debug, Clone, ValueEnum, PartialEq, Copy)]
