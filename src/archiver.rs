@@ -12,6 +12,7 @@ pub fn get_archivers()->Vec<Box<dyn Archiver>>{
     return archiver_list;
 }
 
+
 pub trait Archiver: std::fmt::Debug {
 
     // job self check and archiver check garenteed correctness.

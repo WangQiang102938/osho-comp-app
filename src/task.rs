@@ -1,12 +1,11 @@
-use crate::archiver::*;
 use crate::archiver::sevenz::*;
+use crate::archiver::*;
 use crate::shared_utils::{get_supported_format, AppError, AppResult};
 use crate::{CliOpts, RunMode};
 use std::collections::HashMap;
 use std::env;
 use std::fmt::format;
 use std::path::PathBuf;
-
 
 #[derive(Debug)]
 pub struct ArchiveTask {
@@ -103,6 +102,12 @@ impl ArchiveJob {
             }
         }
 
+        let archiver_list = get_archivers();
+        for archiver in archiver_list.iter() {
+            if (archiver.archive_support_check(opt.dest.unwrap().to_str().unwrap().to_string(), tmpjob.mode)) {
+                tmpjob.archiver=archiver;
+            }
+        }
         return Ok(tmpjob);
     }
 
@@ -159,8 +164,8 @@ mod tests {
 
     #[test]
     fn task_test() {
-        use crate::archiver::*;
         use crate::archiver::sevenz::*;
+        use crate::archiver::*;
         use crate::shared_utils::{get_supported_format, AppError, AppResult};
         use crate::{CliOpts, RunMode};
         use std::collections::HashMap;
@@ -168,7 +173,7 @@ mod tests {
         use std::fmt::format;
         use std::path::PathBuf;
 
-        let mut tmp_task=crate::task::ArchiveTask{
+        let mut tmp_task = crate::task::ArchiveTask {
             jobs: Vec::new(),
             wizard_enable: true,
             options: HashMap::new(),
